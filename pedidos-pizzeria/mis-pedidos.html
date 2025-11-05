@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pedidos - Pizzería Online</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <span class="pizza-icon">🍕</span>
+                <h1>Pizzería Online</h1>
+            </div>
+            <div class="nav-actions">
+                <span id="userName" class="user-name"></span>
+                <button id="logoutBtn" class="btn btn-danger">Salir</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>Mis Pedidos</h2>
+            <div class="tabs">
+                <a href="catalogo.html" class="tab">Pizzas</a>
+                <a href="mis-pedidos.html" class="tab active">Mis Pedidos</a>
+            </div>
+        </div>
+
+        <div id="ordersContainer" class="orders-container"></div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/pedidos.js"></script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Pizzería Online</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <span class="pizza-icon">🍕</span>
+                <h1>Panel Administrativo</h1>
+            </div>
+            <div class="nav-actions">
+                <span id="userName" class="user-name"></span>
+                <button id="logoutBtn" class="btn btn-danger">Salir</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
+            <button class="admin-tab" data-tab="menu">Gestión de Menú</button>
+            <button class="admin-tab" data-tab="orders">Pedidos</button>
+            <button class="admin-tab" data-tab="users">Usuarios</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboardTab" class="tab-content active">
+            <h2>Estadísticas</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Pedidos</h3>
+                    <p id="totalOrders" class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pendientes</h3>
+                    <p id="pendingOrders" class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>En Preparación</h3>
+                    <p id="preparingOrders" class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Entregados</h3>
+                    <p id="deliveredOrders" class="stat-number">0</p>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="ordersChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Gestión de Menú -->
+        <div id="menuTab" class="tab-content">
+            <h2>Gestión de Menú</h2>
+            
+            <div class="card">
+                <h3>Agregar Producto</h3>
+                <form id="addMenuForm" class="form-inline">
+                    <input type="text" id="itemName" placeholder="Nombre" required>
+                    <select id="itemType" required>
+                        <option value="pizza">Pizza</option>
+                        <option value="bebida">Bebida</option>
+                    </select>
+                    <input type="number" id="itemPrice" placeholder="Precio" required>
+                    <button type="submit" class="btn btn-primary">Agregar</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Precio</th>
+                            <th>Disponible</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="menuTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pedidos -->
+        <div id="ordersTab" class="tab-content">
+            <h2>Gestión de Pedidos</h2>
+            <div id="adminOrdersContainer"></div>
+        </div>
+
+        <!-- Usuarios -->
+        <div id="usersTab" class="tab-content">
+            <h2>Gestión de Usuarios</h2>
+            
+            <div class="card">
+                <h3>Crear Usuario</h3>
+                <form id="addUserForm" class="form-grid">
+                    <input type="text" id="userName" placeholder="Nombre" required>
+                    <input type="email" id="userEmail" placeholder="Email" required>
+                    <input type="password" id="userPassword" placeholder="Contraseña" required>
+                    <select id="userRole" required>
+                        <option value="USUARIO">Usuario</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Crear Usuario</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
