@@ -1,107 +1,63 @@
-// Configuración global de la API
-const API_URL = 'https://690bc1036ad3beba00f616a7.mockapi.io/pedidos/main';
-
-// Endpoints
-const ENDPOINTS = {
-    users: `${API_URL}/users`,
-    menu: `${API_URL}/menu`,
-    orders: `${API_URL}/orders`
+const API = {
+    users: 'https://690bc1036ad3beba00f616a7.mockapi.io/pedidos/main/users',
+    orders: 'https://690bc1036ad3beba00f616a7.mockapi.io/pedidos/main/orders',
+    menu: 'https://6913bf71f34a2ff1170d1355.mockapi.io/menu'
 };
 
-// Funciones de utilidad para localStorage
-const Storage = {
-    setUser: (user) => {
-        localStorage.setItem('currentUser', JSON.stringify(user));
-    },
-    
-    getUser: () => {
-        const user = localStorage.getItem('currentUser');
-        return user ? JSON.parse(user) : null;
-    },
-    
-    removeUser: () => {
-        localStorage.removeItem('currentUser');
-    },
-    
-    setCart: (cart) => {
-        localStorage.setItem('cart', JSON.stringify(cart));
-    },
-    
-    getCart: () => {
-        const cart = localStorage.getItem('cart');
-        return cart ? JSON.parse(cart) : [];
-    },
-    
-    clearCart: () => {
-        localStorage.removeItem('cart');
-    }
-};
+// Global State
+let currentUser = null;
+let cart = [];
+let allOrders = [];
+let menuItems = [];
+let chartInstance = null;
 
-// Función para verificar autenticación
-function checkAuth(requiredRole = null) {
-    const user = Storage.getUser();
+// Utility Functions
+const showSection = (section) => {
+    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
     
-    if (!user) {
-        window.location.href = 'index.html';
-        return null;
-    }
-    
-    if (requiredRole && user.role !== requiredRole) {
-        alert('No tienes permisos para acceder a esta página');
-        window.location.href = user.role === 'ADMIN' ? 'admin.html' : 'catalogo.html';
-        return null;
-    }
-    
-    return user;
-}
+    const sections = {
+        login: 'loginSection',
+        register: 'registerSection',
+        menu: 'menuSection',
+        cart: 'cartSection',
+        orders: 'ordersSection',
+        dashboard: 'dashboardSection',
+        adminOrders: 'adminOrdersSection',
+        adminMenu: 'adminMenuSection',
+        adminUsers: 'adminUsersSection'
+    };
 
-// Función para hacer peticiones a la API
-async function fetchAPI(endpoint, options = {}) {
-    try {
-        const response = await fetch(endpoint, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            },
-            ...options
-        });
+    const sectionId = sections[section];
+    if (sectionId) {
+        document.getElementById(sectionId).classList.remove('hidden');
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Load data for specific sections
+        if (section === 'orders') loadUserOrders();
+        if (section === 'dashboard') loadDashboard();
+        if (section === 'adminOrders') loadAdminOrders();
+        if (section === 'adminMenu') loadAdminMenu();
+        if (section === 'adminUsers') loadUsers();
+        if (section === 'cart') renderCart();
+    }
+};
+
+const updateNavbar = () => {
+    const navMenu = document.getElementById('navMenu');
+    if (currentUser) {
+        if (currentUser.role === 'ADMIN') {
+            navMenu.innerHTML = `
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('dashboard')">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('adminOrders')">Pedidos</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('adminMenu')">Menú</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('adminUsers')">Usuarios</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="logout()">Cerrar Sesión</a></li>
+            `;
+        } else {
+            navMenu.innerHTML = `
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('menu')">Menú</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('orders')">Mis Pedidos</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="logout()">Cerrar Sesión</a></li>
+            `;
         }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('Error en la petición:', error);
-        throw error;
     }
-}
-
-// Función para formatear precios
-function formatPrice(price) {
-    return `$${parseFloat(price).toLocaleString('es-AR')}`;
-}
-
-// Función para formatear fechas
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-AR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-// Traducción de estados
-const STATUS_TRANSLATIONS = {
-    'pendiente': 'Pendiente',
-    'en preparacion': 'En Preparación',
-    'preparacion': 'En Preparación',
-    'entregado': 'Entregado'
 };
-
-function translateStatus(status) {
-    return STATUS_TRANSLATIONS[status.toLowerCase()] || status;
-}

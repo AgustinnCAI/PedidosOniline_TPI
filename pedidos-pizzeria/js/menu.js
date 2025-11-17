@@ -1,95 +1,51 @@
-// Verificar autenticación al cargar la página
-const currentUser = checkAuth();
-
-if (currentUser) {
-    displayUserName();
-    setupLogout();
-    loadMenu();
-}
-
-// Cargar el menú desde la API
-async function loadMenu() {
+const loadMenu = async () => {
     try {
-        const menuItems = await fetchAPI(ENDPOINTS.menu);
-        displayMenu(menuItems.filter(item => item.disponible));
-    } catch (error) {
-        console.error('Error cargando el menú:', error);
+        const res = await fetch(API.menu);
+        menuItems = await res.json();
+        renderMenu();
+    } catch (err) {
+        console.error('Error al cargar el menú:', err);
         alert('Error al cargar el menú');
     }
-}
+};
 
-// Mostrar los items del menú
-function displayMenu(items) {
-    const menuGrid = document.getElementById('menuGrid');
+const renderMenu = () => {
+    const container = document.getElementById('menuContainer');
+    const available = menuItems.filter(item => item.disponible === true || item.disponible === 'true');
     
-    if (items.length === 0) {
-        menuGrid.innerHTML = '<p class="empty-message">No hay productos disponibles en este momento</p>';
+    if (available.length === 0) {
+        container.innerHTML = '<div class="col-12"><p class="text-white text-center">No hay productos disponibles</p></div>';
         return;
     }
-    
-    menuGrid.innerHTML = items.map(item => `
-        <div class="menu-card">
-            <div class="menu-card-image">
-                ${item.tipo === 'pizza' ? '🍕' : '🥤'}
-            </div>
-            <div class="menu-card-content">
-                <h3>${item.nombre}</h3>
-                <p class="menu-card-type">${item.tipo}</p>
-                <div class="menu-card-footer">
-                    <span class="menu-card-price">${formatPrice(item.precio)}</span>
-                    <button class="btn btn-primary" onclick="addToCart('${item.id}')">
-                        Agregar
-                    </button>
+
+    container.innerHTML = available.map(item => `
+        <div class="col-md-4">
+            <div class="card product-card">
+                <div class="product-img">
+                    <i class="fas fa-${getIconByType(item.tipo)}"></i>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">${item.nombre}</h5>
+                    <p class="card-text">
+                        <span class="badge bg-secondary">${item.tipo}</span>
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="text-primary mb-0">$${item.precio}</h4>
+                        <button class="btn btn-primary" onclick="addToCart('${item.id}')">
+                            <i class="fas fa-cart-plus"></i> Agregar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     `).join('');
-}
+};
 
-// Agregar item al carrito
-async function addToCart(itemId) {
-    try {
-        const menuItems = await fetchAPI(ENDPOINTS.menu);
-        const item = menuItems.find(i => i.id === itemId);
-        
-        if (!item) {
-            alert('Producto no encontrado');
-            return;
-        }
-        
-        let cart = Storage.getCart();
-        const existingItem = cart.find(i => i.id === itemId);
-        
-        if (existingItem) {
-            existingItem.cantidad++;
-        } else {
-            cart.push({
-                ...item,
-                cantidad: 1
-            });
-        }
-        
-        Storage.setCart(cart);
-        updateCartCount();
-        
-        // Mostrar notificación
-        alert(`${item.nombre} agregado al carrito`);
-        
-    } catch (error) {
-        console.error('Error agregando al carrito:', error);
-        alert('Error al agregar el producto');
-    }
-}
-
-// Actualizar contador del carrito
-function updateCartCount() {
-    const cart = Storage.getCart();
-    const cartCount = document.getElementById('cartCount');
-    
-    if (cartCount) {
-        cartCount.textContent = cart.length;
-    }
-}
-
-// Inicializar contador del carrito al cargar
-updateCartCount();
+const getIconByType = (type) => {
+    const icons = {
+        pizza: 'pizza-slice',
+        bebida: 'glass-whiskey',
+        postre: 'ice-cream'
+    };
+    return icons[type] || 'utensils';
+};

@@ -3,43 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pizzería Online</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Pizzería Online</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="pizza-icon">🍕</div>
-                <h1>Pizzería Online</h1>
-                <p>Deliciosas pizzas a un click</p>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="showSection('menu')">
+                <i class="fas fa-pizza-slice logo-icon"></i>Pizzería Deluxe
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto" id="navMenu">
+                    <!-- Menu items will be populated by JS -->
+                </ul>
             </div>
-            
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
-            </form>
-            
-            <div class="login-footer">
-                <a href="registro.html">¿No tienes cuenta? Regístrate aquí</a>
+        </div>
+    </nav>
+
+    <div class="container container-main" id="mainContainer">
+        <!-- Login Section -->
+        <div id="loginSection" class="section">
+            <div class="auth-card">
+                <h2 class="text-center mb-4"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</h2>
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="loginEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Ingresar</button>
+                    <p class="text-center">¿No tienes cuenta? <a href="#" onclick="showSection('register')">Regístrate aquí</a></p>
+                </form>
             </div>
-            
-            <div class="demo-credentials">
-                <p><strong>Usuarios de prueba:</strong></p>
-                <p>Admin: admin@pizza.com / admin123</p>
-                <p>Usuario: user@pizza.com / user123</p>
+        </div>
+
+        <!-- Register Section -->
+        <div id="registerSection" class="section hidden">
+            <div class="auth-card">
+                <h2 class="text-center mb-4"><i class="fas fa-user-plus"></i> Registro</h2>
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="registerName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="registerEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="registerPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Registrarse</button>
+                    <p class="text-center">¿Ya tienes cuenta? <a href="#" onclick="showSection('login')">Inicia sesión aquí</a></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Menu Section -->
+        <div id="menuSection" class="section hidden">
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <h2 class="text-white"><i class="fas fa-utensils"></i> Nuestro Menú</h2>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light cart-badge" onclick="showSection('cart')">
+                        <i class="fas fa-shopping-cart"></i> Carrito
+                        <span class="badge-count" id="cartCount">0</span>
+                    </button>
+                </div>
+            </div>
+            <div class="row" id="menuContainer">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Cart Section -->
+        <div id="cartSection" class="section hidden">
+            <div class="dashboard-card">
+                <h2><i class="fas fa-shopping-cart"></i> Carrito de Compras</h2>
+                <hr>
+                <div id="cartItems"></div>
+                <div class="text-end mt-4">
+                    <h4>Total: $<span id="cartTotal">0</span></h4>
+                    <button class="btn btn-secondary me-2" onclick="showSection('menu')">Seguir Comprando</button>
+                    <button class="btn btn-primary" onclick="placeOrder()">Realizar Pedido</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Section (User) -->
+        <div id="ordersSection" class="section hidden">
+            <div class="dashboard-card">
+                <h2><i class="fas fa-receipt"></i> Mis Pedidos</h2>
+                <hr>
+                <div id="ordersContainer"></div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="dashboardSection" class="section hidden">
+            <h2 class="text-white mb-4"><i class="fas fa-chart-line"></i> Dashboard</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h3 id="totalOrders">0</h3>
+                        <p class="mb-0">Total Pedidos</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #0984e3, #6c5ce7);">
+                        <h3 id="pendingOrders">0</h3>
+                        <p class="mb-0">Pendientes</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #00b894, #00cec9);">
+                        <h3 id="completedOrders">0</h3>
+                        <p class="mb-0">Completados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <h4>Estado de Pedidos</h4>
+                <canvas id="ordersChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Admin Orders -->
+        <div id="adminOrdersSection" class="section hidden">
+            <div class="dashboard-card">
+                <h2><i class="fas fa-list"></i> Gestión de Pedidos</h2>
+                <hr>
+                <div id="adminOrdersContainer"></div>
+            </div>
+        </div>
+
+        <!-- Admin Menu Management -->
+        <div id="adminMenuSection" class="section hidden">
+            <div class="dashboard-card">
+                <h2><i class="fas fa-edit"></i> Gestión del Menú</h2>
+                <button class="btn btn-primary mb-3" onclick="showAddProductModal()">
+                    <i class="fas fa-plus"></i> Agregar Producto
+                </button>
+                <hr>
+                <div id="adminMenuContainer"></div>
+            </div>
+        </div>
+
+        <!-- Admin Users -->
+        <div id="adminUsersSection" class="section hidden">
+            <div class="dashboard-card">
+                <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+                <hr>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal for Product Form -->
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productModalTitle">Agregar Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <input type="hidden" id="productId">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="productName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-control" id="productType" required>
+                                <option value="pizza">Pizza</option>
+                                <option value="bebida">Bebida</option>
+                                <option value="postre">Postre</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Precio</label>
+                            <input type="number" class="form-control" id="productPrice" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Disponible</label>
+                            <select class="form-control" id="productAvailable">
+                                <option value="true">Sí</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProduct()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Change Password -->
+    <div class="modal fade" id="passwordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="changePasswordUserId">
+                    <div class="mb-3">
+                        <label class="form-label">Nueva Contraseña</label>
+                        <input type="password" class="form-control" id="newPassword" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="changePassword()">Cambiar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.3.0/chart.umd.min.js"></script>
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/menu.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/orders.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
