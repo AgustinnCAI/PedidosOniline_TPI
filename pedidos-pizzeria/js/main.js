@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Sistema de Pedidos Online - Pizzería Deluxe');
+    console.log('Sistema de Pedidos Online - Pizza al Toque');
     console.log('Inicializando aplicación...');
     
     // Check authentication on page load
