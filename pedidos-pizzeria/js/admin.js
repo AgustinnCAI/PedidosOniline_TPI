@@ -3,15 +3,30 @@ const loadDashboard = async () => {
         const res = await fetch(API.orders);
         allOrders = await res.json();
         
-        const total = allOrders.length;
-        const pending = allOrders.filter(o => o.estado === 'pendiente').length;
-        const completed = allOrders.filter(o => o.estado === 'entregado').length;
+        console.log('Pedidos cargados:', allOrders);
         
-        document.getElementById('totalOrders').textContent = total;
-        document.getElementById('pendingOrders').textContent = pending;
-        document.getElementById('completedOrders').textContent = completed;
+        // Esperar a que Chart.js esté cargado
+        let attempts = 0;
+        const maxAttempts = 20;
         
-        renderChart();
+        const checkAndRender = () => {
+            attempts++;
+            if (typeof Chart !== 'undefined' && typeof Chart.Chart !== 'undefined') {
+                console.log('Chart.js está cargado');
+                // Esperar a que la sección sea visible
+                setTimeout(() => {
+                    renderChart();
+                }, 500);
+            } else if (attempts < maxAttempts) {
+                console.log(`Esperando Chart.js... intento ${attempts}`);
+                setTimeout(checkAndRender, 100);
+            } else {
+                console.error('Chart.js no se pudo cargar después de varios intentos');
+                alert('Error: Chart.js no está disponible');
+            }
+        };
+        
+        checkAndRender();
     } catch (err) {
         console.error('Error al cargar dashboard:', err);
         alert('Error al cargar dashboard');
@@ -19,43 +34,93 @@ const loadDashboard = async () => {
 };
 
 const renderChart = () => {
-    const pending = allOrders.filter(o => o.estado === 'pendiente').length;
-    const inProgress = allOrders.filter(o => o.estado === 'en preparacion').length;
-    const delivered = allOrders.filter(o => o.estado === 'entregado').length;
-
+    console.log('=== Iniciando renderizado del gráfico ===');
+    
     const ctx = document.getElementById('ordersChart');
     
+    if (!ctx) {
+        console.error('❌ Canvas element not found');
+        return;
+    }
+    console.log('✅ Canvas encontrado');
+    
+    // Verificar que Chart esté disponible
+    if (typeof Chart === 'undefined') {
+        console.error('❌ Chart.js no está cargado');
+        return;
+    }
+    console.log('✅ Chart.js está disponible');
+    
+    // Verificar que el canvas sea visible
+    const dashboardSection = document.getElementById('dashboardSection');
+    if (dashboardSection && dashboardSection.classList.contains('hidden')) {
+        console.warn('⚠️ Dashboard section está oculta, reintentando...');
+        setTimeout(renderChart, 200);
+        return;
+    }
+    console.log('✅ Dashboard section es visible');
+    
+    // Calcular datos
+    const pending = allOrders ? allOrders.filter(o => o.estado === 'pendiente').length : 0;
+    const inProgress = allOrders ? allOrders.filter(o => o.estado === 'en preparacion').length : 0;
+    const delivered = allOrders ? allOrders.filter(o => o.estado === 'entregado').length : 0;
+    
+    console.log('📊 Datos del gráfico:', { pending, inProgress, delivered });
+    console.log('📦 Total de pedidos:', allOrders ? allOrders.length : 0);
+
+    // Destruir instancia anterior si existe
     if (chartInstance) {
+        console.log('🗑️ Destruyendo instancia anterior del gráfico');
         chartInstance.destroy();
+        chartInstance = null;
     }
 
-    chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Pendiente', 'En Preparación', 'Entregado'],
-            datasets: [{
-                label: 'Pedidos',
-                data: [pending, inProgress, delivered],
-                backgroundColor: ['#ffeaa7', '#74b9ff', '#55efc4'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: { display: false }
+    // Crear nuevo gráfico
+    try {
+        console.log('🎨 Creando nuevo gráfico...');
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Pendiente', 'En Preparación', 'Entregado'],
+                datasets: [{
+                    label: 'Cantidad de Pedidos',
+                    data: [pending, inProgress, delivered],
+                    backgroundColor: ['#ffeaa7', '#74b9ff', '#55efc4'],
+                    borderColor: ['#fdcb6e', '#0984e3', '#00b894'],
+                    borderWidth: 2
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1000
+                },
+                plugins: {
+                    legend: { 
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        enabled: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        }
                     }
                 }
             }
-        }
-    });
+        });
+        console.log('✅ Gráfico renderizado exitosamente');
+    } catch (error) {
+        console.error('❌ Error al crear el gráfico:', error);
+        console.error('Stack trace:', error.stack);
+    }
 };
 
 const loadAdminOrders = async () => {

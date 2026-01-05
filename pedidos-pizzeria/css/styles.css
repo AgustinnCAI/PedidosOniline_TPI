@@ -1,25 +1,40 @@
 :root {
     --primary: #e74c3c;
     --secondary: #c0392b;
-    --dark: #2c3e50;
-    --light: #ecf0f1;
+    --dark: #2c1810;
+    --light: #ffffff;
+    --text-dark: #2c3e50;
+    --text-light: #ffffff;
+    --pizza-red: #d32f2f;
+    --pizza-orange: #ff6b35;
+    --pizza-yellow: #ffa726;
+    --pizza-dark: #8b4513;
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ff8c5a 0%, #ff6b35 50%, #e74c3c 100%);
     min-height: 100vh;
+    color: var(--text-dark);
 }
 
 .navbar {
-    background: var(--dark) !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    background: var(--pizza-dark) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
 .navbar-brand {
     font-weight: bold;
-    color: var(--primary) !important;
+    color: #ffffff !important;
     font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+    color: #ffffff !important;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--pizza-orange) !important;
 }
 
 .container-main {
@@ -36,6 +51,17 @@ body {
     margin: 0 auto;
 }
 
+.auth-card h2,
+.auth-card label {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.auth-card .form-label {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
 .product-card {
     border: none;
     border-radius: 15px;
@@ -43,6 +69,24 @@ body {
     transition: transform 0.3s, box-shadow 0.3s;
     margin-bottom: 30px;
     overflow: hidden;
+    background: white;
+}
+
+.product-card .card-body {
+    background: white;
+}
+
+.product-card .card-title {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.product-card .card-text {
+    color: #555;
+}
+
+.product-card .text-muted {
+    color: #666 !important;
 }
 
 .product-card:hover {
@@ -53,7 +97,7 @@ body {
 .product-img {
     height: 200px;
     object-fit: cover;
-    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    background: linear-gradient(45deg, var(--pizza-orange), var(--pizza-red));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -62,13 +106,17 @@ body {
 }
 
 .btn-primary {
-    background: var(--primary);
+    background: var(--pizza-red);
     border: none;
-    transition: background 0.3s;
+    color: #ffffff;
+    font-weight: 600;
+    transition: background 0.3s, transform 0.2s;
 }
 
 .btn-primary:hover {
-    background: var(--secondary);
+    background: var(--pizza-orange);
+    color: #ffffff;
+    transform: translateY(-2px);
 }
 
 .cart-badge {
@@ -79,7 +127,7 @@ body {
     position: absolute;
     top: -8px;
     right: -8px;
-    background: var(--primary);
+    background: var(--pizza-red);
     color: white;
     border-radius: 50%;
     width: 20px;
@@ -88,16 +136,28 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 0.7rem;
+    font-weight: bold;
 }
 
 .cart-item {
-    background: #f8f9fa;
+    background: #ffffff;
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.cart-item h6 {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.cart-item small {
+    color: #666;
 }
 
 .dashboard-card {
@@ -105,21 +165,37 @@ body {
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.dashboard-card h2,
+.dashboard-card h4 {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.text-white {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
 .stat-card {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, var(--pizza-orange), var(--pizza-red));
     color: white;
     border-radius: 15px;
     padding: 30px;
     text-align: center;
     margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .stat-card h3 {
     font-size: 2.5rem;
     margin: 0;
+}
+
+#ordersChart {
+    max-height: 400px;
+    height: 400px !important;
 }
 
 .order-status {
@@ -150,7 +226,7 @@ body {
 }
 
 .logo-icon {
-    color: var(--primary);
+    color: var(--pizza-orange);
     margin-right: 10px;
 }
 

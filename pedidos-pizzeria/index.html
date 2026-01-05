@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pizzería Online</title>
+    <title>Pizza al Toque - Pedidos Online</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
@@ -13,7 +13,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#" onclick="showSection('menu')">
-                <i class="fas fa-pizza-slice logo-icon"></i>Pizzería Deluxe
+                <i class="fas fa-pizza-slice logo-icon"></i>Pizza al Toque
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -113,29 +113,11 @@
         <!-- Admin Dashboard -->
         <div id="dashboardSection" class="section hidden">
             <h2 class="text-white mb-4"><i class="fas fa-chart-line"></i> Dashboard</h2>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="stat-card">
-                        <h3 id="totalOrders">0</h3>
-                        <p class="mb-0">Total Pedidos</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stat-card" style="background: linear-gradient(135deg, #0984e3, #6c5ce7);">
-                        <h3 id="pendingOrders">0</h3>
-                        <p class="mb-0">Pendientes</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stat-card" style="background: linear-gradient(135deg, #00b894, #00cec9);">
-                        <h3 id="completedOrders">0</h3>
-                        <p class="mb-0">Completados</p>
-                    </div>
-                </div>
-            </div>
             <div class="dashboard-card">
                 <h4>Estado de Pedidos</h4>
-                <canvas id="ordersChart"></canvas>
+                <div style="position: relative; height: 400px; width: 100%;">
+                    <canvas id="ordersChart" width="400" height="400"></canvas>
+                </div>
             </div>
         </div>
 
@@ -251,7 +233,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.3.0/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/menu.js"></script>
