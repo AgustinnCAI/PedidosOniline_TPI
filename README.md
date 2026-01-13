@@ -101,8 +101,8 @@ PedidosOniline_TPI/
 
 1. **Clonar o descargar el repositorio**
 ```bash
-git clone https://github.com/tu-usuario/PedidosOniline_TPI.git
-cd PedidosOniline_TPI/pedidos-pizzeria
+git clone https://github.com/AgustinnCAI/PedidosOniline_TPI.git
+
 ```
 
 2. **Abrir el proyecto**
@@ -674,7 +674,7 @@ Desarrollado para la materia de Programación III
 
 Este proyecto fue desarrollado como Trabajo Práctico Integrador para la materia Programación III.
 
-**Uso Educativo** - Universidad Tecnológica Nacional
+**Uso Educativo** - Universidad Tecnológica Nacional  Regional Villa María
 
 ---
 
