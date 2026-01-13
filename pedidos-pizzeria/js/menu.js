@@ -1,11 +1,20 @@
 const loadMenu = async () => {
     try {
+        showLoading(true);
         const res = await fetch(API.menu);
+        if (!res.ok) {
+            throw new Error('Error al conectar con el servidor');
+        }
         menuItems = await res.json();
         renderMenu();
     } catch (err) {
         console.error('Error al cargar el menú:', err);
-        alert('Error al cargar el menú');
+        const container = document.getElementById('menuContainer');
+        if (container) {
+            container.innerHTML = '<div class="col-12"><p class="text-white text-center">Error al cargar el menú. Por favor, recarga la página.</p></div>';
+        }
+    } finally {
+        showLoading(false);
     }
 };
 

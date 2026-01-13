@@ -137,6 +137,11 @@ body {
     justify-content: center;
     font-size: 0.7rem;
     font-weight: bold;
+    min-width: 20px;
+}
+
+.badge-count:empty {
+    display: none;
 }
 
 .cart-item {
@@ -210,7 +215,7 @@ body {
     color: #d63031;
 }
 
-.status-en.preparacion,
+.status-en-preparacion,
 .status-preparacion {
     background: #74b9ff;
     color: #0984e3;
@@ -230,6 +235,26 @@ body {
     margin-right: 10px;
 }
 
+/* Mejoras de accesibilidad y UX */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--pizza-orange);
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cart-item {
+    transition: transform 0.2s;
+}
+
+.cart-item:hover {
+    transform: translateX(5px);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container-main {
@@ -242,5 +267,19 @@ body {
     
     .stat-card h3 {
         font-size: 2rem;
+    }
+    
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+    
+    .auth-card {
+        padding: 20px;
+    }
+    
+    .dashboard-card {
+        padding: 15px;
     }
 }

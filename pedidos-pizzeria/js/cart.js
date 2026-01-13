@@ -11,6 +11,12 @@ const addToCart = (productId) => {
         return;
     }
 
+    // Verificar disponibilidad
+    if (product.disponible === false || product.disponible === 'false') {
+        alert('Este producto no está disponible');
+        return;
+    }
+
     const existingItem = cart.find(item => item.id === productId);
     
     if (existingItem) {
@@ -19,13 +25,48 @@ const addToCart = (productId) => {
         cart.push({ ...product, quantity: 1 });
     }
     
+    saveCartToStorage();
     updateCartCount();
-    alert('Producto agregado al carrito');
+    
+    // Mostrar notificación más sutil
+    showNotification('Producto agregado al carrito', 'success');
 };
 
 const updateCartCount = () => {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    document.getElementById('cartCount').textContent = count;
+    const cartCountEl = document.getElementById('cartCount');
+    if (cartCountEl) {
+        cartCountEl.textContent = count;
+        cartCountEl.style.display = count > 0 ? 'flex' : 'none';
+    }
+};
+
+// Persistencia del carrito en localStorage
+const saveCartToStorage = () => {
+    if (currentUser) {
+        localStorage.setItem(`cart_${currentUser.id}`, JSON.stringify(cart));
+    }
+};
+
+const loadCartFromStorage = () => {
+    if (currentUser) {
+        const savedCart = localStorage.getItem(`cart_${currentUser.id}`);
+        if (savedCart) {
+            try {
+                cart = JSON.parse(savedCart);
+                updateCartCount();
+            } catch (err) {
+                console.error('Error al cargar el carrito:', err);
+                cart = [];
+            }
+        }
+    }
+};
+
+const clearCartFromStorage = () => {
+    if (currentUser) {
+        localStorage.removeItem(`cart_${currentUser.id}`);
+    }
 };
 
 const renderCart = () => {
@@ -65,6 +106,7 @@ const updateQuantity = (productId, change) => {
         if (item.quantity <= 0) {
             removeFromCart(productId);
         } else {
+            saveCartToStorage();
             renderCart();
             updateCartCount();
         }
@@ -73,6 +115,7 @@ const updateQuantity = (productId, change) => {
 
 const removeFromCart = (productId) => {
     cart = cart.filter(item => item.id !== productId);
+    saveCartToStorage();
     renderCart();
     updateCartCount();
 };
@@ -88,17 +131,40 @@ const placeOrder = async () => {
         return;
     }
 
-    const total = cart.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
+    // Validar que todos los productos sigan disponibles
+    const unavailableItems = cart.filter(item => {
+        const menuItem = menuItems.find(m => m.id == item.id);
+        return !menuItem || menuItem.disponible === false || menuItem.disponible === 'false';
+    });
+
+    if (unavailableItems.length > 0) {
+        alert('Algunos productos en tu carrito ya no están disponibles. Por favor, actualiza tu carrito.');
+        loadMenu();
+        return;
+    }
+
+    if (!confirm('¿Confirmar pedido?')) {
+        return;
+    }
+
+    const total = cart.reduce((sum, item) => sum + (parseFloat(item.precio) * item.quantity), 0);
     const order = {
         userId: currentUser.id,
         userName: currentUser.nombre,
-        items: cart,
+        items: cart.map(item => ({
+            id: item.id,
+            nombre: item.nombre,
+            tipo: item.tipo,
+            precio: item.precio,
+            quantity: item.quantity
+        })),
         total: total.toFixed(2),
         estado: 'pendiente',
         fecha: new Date().toLocaleString('es-AR')
     };
 
     try {
+        showLoading(true);
         const res = await fetch(API.orders, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -106,15 +172,20 @@ const placeOrder = async () => {
         });
 
         if (res.ok) {
-            alert('¡Pedido realizado con éxito!');
+            showNotification('¡Pedido realizado con éxito!', 'success');
             cart = [];
+            clearCartFromStorage();
             updateCartCount();
             showSection('orders');
+            loadUserOrders();
         } else {
-            alert('Error al realizar el pedido');
+            const errorData = await res.json().catch(() => ({}));
+            alert('Error al realizar el pedido: ' + (errorData.message || 'Error desconocido'));
         }
     } catch (err) {
         console.error('Error al realizar el pedido:', err);
-        alert('Error al realizar el pedido');
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    } finally {
+        showLoading(false);
     }
 };

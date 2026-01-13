@@ -1,9 +1,11 @@
 const loadDashboard = async () => {
     try {
+        showLoading(true);
         const res = await fetch(API.orders);
+        if (!res.ok) {
+            throw new Error('Error al conectar con el servidor');
+        }
         allOrders = await res.json();
-        
-        console.log('Pedidos cargados:', allOrders);
         
         // Esperar a que Chart.js esté cargado
         let attempts = 0;
@@ -11,25 +13,31 @@ const loadDashboard = async () => {
         
         const checkAndRender = () => {
             attempts++;
-            if (typeof Chart !== 'undefined' && typeof Chart.Chart !== 'undefined') {
-                console.log('Chart.js está cargado');
+            if (typeof Chart !== 'undefined') {
                 // Esperar a que la sección sea visible
                 setTimeout(() => {
                     renderChart();
-                }, 500);
+                }, 300);
             } else if (attempts < maxAttempts) {
-                console.log(`Esperando Chart.js... intento ${attempts}`);
                 setTimeout(checkAndRender, 100);
             } else {
                 console.error('Chart.js no se pudo cargar después de varios intentos');
-                alert('Error: Chart.js no está disponible');
+                const dashboardCard = document.querySelector('#dashboardSection .dashboard-card');
+                if (dashboardCard) {
+                    dashboardCard.innerHTML = '<p class="text-danger">Error: Chart.js no está disponible. Por favor, recarga la página.</p>';
+                }
             }
         };
         
         checkAndRender();
     } catch (err) {
         console.error('Error al cargar dashboard:', err);
-        alert('Error al cargar dashboard');
+        const dashboardCard = document.querySelector('#dashboardSection .dashboard-card');
+        if (dashboardCard) {
+            dashboardCard.innerHTML = '<p class="text-danger">Error al cargar el dashboard. Por favor, intenta nuevamente.</p>';
+        }
+    } finally {
+        showLoading(false);
     }
 };
 
@@ -125,7 +133,11 @@ const renderChart = () => {
 
 const loadAdminOrders = async () => {
     try {
+        showLoading(true);
         const res = await fetch(API.orders);
+        if (!res.ok) {
+            throw new Error('Error al conectar con el servidor');
+        }
         allOrders = await res.json();
         
         const container = document.getElementById('adminOrdersContainer');
@@ -135,39 +147,72 @@ const loadAdminOrders = async () => {
             return;
         }
 
-        container.innerHTML = allOrders.reverse().map(order => `
-            <div class="cart-item">
-                <div>
-                    <h6>Pedido #${order.id} - ${order.userName || 'Usuario ' + order.userId}</h6>
-                    <small>${order.fecha || 'Sin fecha'}</small><br>
-                    <small>${order.items?.length || 0} items - Total: ${order.total}</small>
+        container.innerHTML = allOrders.reverse().map(order => {
+            const itemsCount = order.items ? order.items.length : 0;
+            const itemsList = order.items ? order.items.map(item => 
+                `${item.nombre} (x${item.quantity || 1})`
+            ).join(', ') : 'Sin items';
+            
+            return `
+                <div class="cart-item">
+                    <div style="flex: 1;">
+                        <h6>Pedido #${order.id} - ${order.userName || 'Usuario ' + order.userId}</h6>
+                        <small>${order.fecha || 'Sin fecha'}</small><br>
+                        <small>${itemsList}</small><br>
+                        <strong>Total: $${order.total || '0.00'}</strong>
+                    </div>
+                    <div>
+                        <select class="form-select form-select-sm" onchange="updateOrderStatus('${order.id}', this.value)" style="width: 150px;">
+                            <option value="pendiente" ${(order.estado || 'pendiente') === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="en preparacion" ${(order.estado || 'pendiente') === 'en preparacion' ? 'selected' : ''}>En Preparación</option>
+                            <option value="entregado" ${(order.estado || 'pendiente') === 'entregado' ? 'selected' : ''}>Entregado</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <select class="form-select form-select-sm" onchange="updateOrderStatus('${order.id}', this.value)" style="width: 150px;">
-                        <option value="pendiente" ${order.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                        <option value="en preparacion" ${order.estado === 'en preparacion' ? 'selected' : ''}>En Preparación</option>
-                        <option value="entregado" ${order.estado === 'entregado' ? 'selected' : ''}>Entregado</option>
-                    </select>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     } catch (err) {
         console.error('Error al cargar pedidos:', err);
-        alert('Error al cargar pedidos');
+        const container = document.getElementById('adminOrdersContainer');
+        if (container) {
+            container.innerHTML = '<p class="text-center text-danger">Error al cargar pedidos. Por favor, intenta nuevamente.</p>';
+        }
+    } finally {
+        showLoading(false);
     }
 };
 
 const updateOrderStatus = async (orderId, newStatus) => {
     try {
+        // Primero obtener el pedido completo
+        const getRes = await fetch(`${API.orders}/${orderId}`);
+        if (!getRes.ok) {
+            alert('Error al obtener el pedido');
+            return;
+        }
+        const order = await getRes.json();
+        
+        // Actualizar el estado manteniendo todos los demás datos
+        const updatedOrder = { ...order, estado: newStatus };
+        
         const res = await fetch(`${API.orders}/${orderId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado: newStatus })
+            body: JSON.stringify(updatedOrder)
         });
 
         if (res.ok) {
+            // Actualizar también en allOrders para mantener consistencia
+            const index = allOrders.findIndex(o => o.id == orderId);
+            if (index !== -1) {
+                allOrders[index] = updatedOrder;
+            }
             alert('Estado actualizado correctamente');
             loadAdminOrders();
+            // Si el dashboard está visible, actualizar el gráfico
+            if (!document.getElementById('dashboardSection').classList.contains('hidden')) {
+                renderChart();
+            }
         } else {
             alert('Error al actualizar el estado');
         }
@@ -179,7 +224,11 @@ const updateOrderStatus = async (orderId, newStatus) => {
 
 const loadAdminMenu = async () => {
     try {
+        showLoading(true);
         const res = await fetch(API.menu);
+        if (!res.ok) {
+            throw new Error('Error al conectar con el servidor');
+        }
         menuItems = await res.json();
         
         const container = document.getElementById('adminMenuContainer');
@@ -207,18 +256,18 @@ const loadAdminMenu = async () => {
                             <tr>
                                 <td>${item.id}</td>
                                 <td>${item.nombre}</td>
-                                <td><span class="badge bg-secondary">${item.tipo}</span></td>
-                                <td>${item.precio}</td>
+                                <td><span class="badge bg-secondary">${item.tipo || 'N/A'}</span></td>
+                                <td>$${parseFloat(item.precio || 0).toFixed(2)}</td>
                                 <td>
                                     <span class="badge bg-${item.disponible === true || item.disponible === 'true' ? 'success' : 'danger'}">
                                         ${item.disponible === true || item.disponible === 'true' ? 'Sí' : 'No'}
                                     </span>
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary" onclick="editProduct('${item.id}')">
+                                    <button class="btn btn-sm btn-primary me-1" onclick="editProduct('${item.id}')" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteProduct('${item.id}')">
+                                    <button class="btn btn-sm btn-danger" onclick="deleteProduct('${item.id}')" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
@@ -230,7 +279,12 @@ const loadAdminMenu = async () => {
         `;
     } catch (err) {
         console.error('Error al cargar menú:', err);
-        alert('Error al cargar el menú');
+        const container = document.getElementById('adminMenuContainer');
+        if (container) {
+            container.innerHTML = '<p class="text-center text-danger">Error al cargar el menú. Por favor, intenta nuevamente.</p>';
+        }
+    } finally {
+        showLoading(false);
     }
 };
 
@@ -259,19 +313,31 @@ const editProduct = (productId) => {
 
 const saveProduct = async () => {
     const id = document.getElementById('productId').value;
-    const nombre = document.getElementById('productName').value;
+    const nombre = document.getElementById('productName').value.trim();
     const tipo = document.getElementById('productType').value;
     const precio = parseFloat(document.getElementById('productPrice').value);
     const disponible = document.getElementById('productAvailable').value === 'true';
 
-    if (!nombre || !tipo || !precio) {
-        alert('Completa todos los campos');
+    // Validaciones
+    if (!nombre || nombre.length < 2) {
+        alert('El nombre debe tener al menos 2 caracteres');
+        return;
+    }
+
+    if (!tipo) {
+        alert('Selecciona un tipo de producto');
+        return;
+    }
+
+    if (!precio || precio <= 0 || isNaN(precio)) {
+        alert('Ingresa un precio válido mayor a 0');
         return;
     }
 
     const productData = { nombre, tipo, precio, disponible };
 
     try {
+        showLoading(true);
         let res;
         if (id) {
             // Update existing product
@@ -290,29 +356,36 @@ const saveProduct = async () => {
         }
 
         if (res.ok) {
-            alert(id ? 'Producto actualizado' : 'Producto creado');
+            showNotification(id ? 'Producto actualizado correctamente' : 'Producto creado correctamente', 'success');
             bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
             loadAdminMenu();
             loadMenu();
         } else {
-            alert('Error al guardar el producto');
+            const errorData = await res.json().catch(() => ({}));
+            alert('Error al guardar el producto: ' + (errorData.message || 'Error desconocido'));
         }
     } catch (err) {
         console.error('Error al guardar producto:', err);
-        alert('Error al guardar el producto');
+        alert('Error al guardar el producto. Por favor, intenta nuevamente.');
+    } finally {
+        showLoading(false);
     }
 };
 
 const deleteProduct = async (productId) => {
-    if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+    const product = menuItems.find(p => p.id == productId);
+    const productName = product ? product.nombre : 'este producto';
+    
+    if (!confirm(`¿Estás seguro de eliminar "${productName}"? Esta acción no se puede deshacer.`)) return;
 
     try {
+        showLoading(true);
         const res = await fetch(`${API.menu}/${productId}`, {
             method: 'DELETE'
         });
 
         if (res.ok) {
-            alert('Producto eliminado');
+            showNotification('Producto eliminado correctamente', 'success');
             loadAdminMenu();
             loadMenu();
         } else {
@@ -320,13 +393,19 @@ const deleteProduct = async (productId) => {
         }
     } catch (err) {
         console.error('Error al eliminar producto:', err);
-        alert('Error al eliminar el producto');
+        alert('Error al eliminar el producto. Por favor, intenta nuevamente.');
+    } finally {
+        showLoading(false);
     }
 };
 
 const loadUsers = async () => {
     try {
+        showLoading(true);
         const res = await fetch(API.users);
+        if (!res.ok) {
+            throw new Error('Error al conectar con el servidor');
+        }
         const users = await res.json();
         
         const tbody = document.getElementById('usersTableBody');
@@ -339,11 +418,11 @@ const loadUsers = async () => {
         tbody.innerHTML = users.map(user => `
             <tr>
                 <td>${user.id}</td>
-                <td>${user.nombre}</td>
-                <td>${user.email}</td>
-                <td><span class="badge bg-${user.role === 'ADMIN' ? 'danger' : 'primary'}">${user.role}</span></td>
+                <td>${user.nombre || 'N/A'}</td>
+                <td>${user.email || 'N/A'}</td>
+                <td><span class="badge bg-${user.role === 'ADMIN' ? 'danger' : 'primary'}">${user.role || 'USUARIO'}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-warning" onclick="showChangePasswordModal('${user.id}')">
+                    <button class="btn btn-sm btn-warning" onclick="showChangePasswordModal('${user.id}')" title="Cambiar contraseña">
                         <i class="fas fa-key"></i> Cambiar Contraseña
                     </button>
                 </td>
@@ -351,7 +430,12 @@ const loadUsers = async () => {
         `).join('');
     } catch (err) {
         console.error('Error al cargar usuarios:', err);
-        alert('Error al cargar usuarios');
+        const tbody = document.getElementById('usersTableBody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar usuarios. Por favor, intenta nuevamente.</td></tr>';
+        }
+    } finally {
+        showLoading(false);
     }
 };
 
@@ -372,21 +456,37 @@ const changePassword = async () => {
     }
 
     try {
+        showLoading(true);
+        // Obtener usuario completo primero
+        const getRes = await fetch(`${API.users}/${userId}`);
+        if (!getRes.ok) {
+            alert('Error al obtener el usuario');
+            return;
+        }
+        const user = await getRes.json();
+        
+        // Actualizar solo la contraseña manteniendo los demás datos
+        const updatedUser = { ...user, password: newPassword };
+        
         const res = await fetch(`${API.users}/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: newPassword })
+            body: JSON.stringify(updatedUser)
         });
 
         if (res.ok) {
-            alert('Contraseña actualizada correctamente');
+            showNotification('Contraseña actualizada correctamente', 'success');
             bootstrap.Modal.getInstance(document.getElementById('passwordModal')).hide();
+            document.getElementById('newPassword').value = '';
             loadUsers();
         } else {
-            alert('Error al cambiar la contraseña');
+            const errorData = await res.json().catch(() => ({}));
+            alert('Error al cambiar la contraseña: ' + (errorData.message || 'Error desconocido'));
         }
     } catch (err) {
         console.error('Error al cambiar contraseña:', err);
-        alert('Error al cambiar la contraseña');
+        alert('Error al cambiar la contraseña. Por favor, intenta nuevamente.');
+    } finally {
+        showLoading(false);
     }
 };
